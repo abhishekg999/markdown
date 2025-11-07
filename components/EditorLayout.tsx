@@ -1,7 +1,7 @@
 "use client";
 
-import { useLocalStorage } from "@uidotdev/usehooks";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import LoadingState from "./LoadingState";
 import MarkdownEditor, { type MarkdownEditorHandle } from "./MarkdownEditor";
 import MarkdownPreview from "./MarkdownPreview";
 
@@ -59,28 +59,41 @@ Start editing to see changes!
 
 export default function EditorLayout() {
   const [mounted, setMounted] = useState(false);
-  const [markdown, setMarkdown] = useLocalStorage(
-    "markdown-content",
-    DEFAULT_MARKDOWN,
-  );
+  const [markdown, setMarkdown] = useState(DEFAULT_MARKDOWN);
   const editorRef = useRef<MarkdownEditorHandle>(null);
 
   useEffect(() => {
     setMounted(true);
+    const saved = localStorage.getItem("markdown-content");
+    if (saved) {
+      setMarkdown(saved);
+    }
   }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem("markdown-content", markdown);
+    }
+  }, [markdown, mounted]);
 
   const handleLineClick = (lineNumber: number) => {
     editorRef.current?.jumpToLine(lineNumber);
   };
 
-  if (!mounted) {
-    return null;
-  }
-
   return (
     <div className="flex-1 flex overflow-hidden">
-      <MarkdownEditor ref={editorRef} value={markdown} onChange={setMarkdown} />
-      <MarkdownPreview content={markdown} onLineClick={handleLineClick} />
+      {!mounted ? (
+        <LoadingState />
+      ) : (
+        <>
+          <MarkdownEditor
+            ref={editorRef}
+            value={markdown}
+            onChange={setMarkdown}
+          />
+          <MarkdownPreview content={markdown} onLineClick={handleLineClick} />
+        </>
+      )}
     </div>
   );
 }

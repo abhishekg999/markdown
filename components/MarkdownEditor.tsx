@@ -6,7 +6,10 @@ import dynamic from "next/dynamic";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { useEditorSettings } from "./EditorSettings";
 
-const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+const Editor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+  loading: () => null,
+});
 
 interface MarkdownEditorProps {
   value: string;
@@ -44,13 +47,14 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(
     }, [settings]);
 
     return (
-      <div className="w-1/2 border-r border-neutral-200 dark:border-neutral-700">
+      <div className="w-1/2 h-full border-r border-neutral-200 dark:border-neutral-700">
         <Editor
           height="100%"
           defaultLanguage="markdown"
           value={value}
           onChange={(value) => onChange(value || "")}
           theme={theme === "dark" ? "vs-dark" : "light"}
+          loading=""
           onMount={(editor) => {
             editorRef.current = editor;
           }}

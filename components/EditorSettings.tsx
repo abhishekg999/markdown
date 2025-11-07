@@ -1,7 +1,12 @@
 "use client";
 
-import { useLocalStorage } from "@uidotdev/usehooks";
-import { createContext, ReactNode, useContext } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface EditorSettings {
   wordWrap: boolean;
@@ -25,10 +30,18 @@ const EditorSettingsContext = createContext<
 >(undefined);
 
 export function EditorSettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useLocalStorage<EditorSettings>(
-    "editor-settings",
-    defaultSettings,
-  );
+  const [settings, setSettings] = useState<EditorSettings>(defaultSettings);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("editor-settings");
+    if (saved) {
+      setSettings(JSON.parse(saved));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("editor-settings", JSON.stringify(settings));
+  }, [settings]);
 
   const updateSettings = (newSettings: Partial<EditorSettings>) => {
     setSettings({ ...settings, ...newSettings });

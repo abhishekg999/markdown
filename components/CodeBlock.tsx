@@ -29,8 +29,8 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
         style={theme === "dark" ? vscDarkPlus : vs}
         customStyle={{
           margin: 0,
-          padding: "1.5rem",
-          paddingTop: "2.5rem",
+          padding: "0.75rem",
+          paddingTop: "1.5rem",
           backgroundColor: theme === "dark" ? "#1e1e1e" : "#f6f8fa",
           borderRadius: "0.25rem",
           fontSize: "0.9em",
