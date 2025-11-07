@@ -4,8 +4,14 @@ import EditorLayout from "@/components/EditorLayout";
 import { EditorSettingsProvider } from "@/components/EditorSettings";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { registerServiceWorker } from "@/lib/register-sw";
+import { useEffect } from "react";
 
 export default function Home() {
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
   return (
     <ThemeProvider>
       <EditorSettingsProvider>
