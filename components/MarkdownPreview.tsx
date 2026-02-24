@@ -1,11 +1,10 @@
 "use client";
 
 import { rehypeAddLineNumbers } from "@/lib/rehype-add-line-numbers";
-import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
+import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
-import CodeBlock from "./CodeBlock";
 
 interface MarkdownPreviewProps {
   content: string;
@@ -16,30 +15,11 @@ export default function MarkdownPreview({
   content,
   onLineClick,
 }: MarkdownPreviewProps) {
-  const components: Components = {
-    code({ className, children, ...props }) {
-      const isInline = !className;
-      const codeContent = String(children).replace(/\n$/, "");
-
-      return isInline ? (
-        <code className={className} {...props}>
-          {children}
-        </code>
-      ) : (
-        <CodeBlock className={className}>{codeContent}</CodeBlock>
-      );
-    },
-  };
-
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    const element = target.closest("[data-line]");
-
-    if (element) {
+    const element = (e.target as HTMLElement).closest("[data-line]");
+    if (element && onLineClick) {
       const lineNumber = element.getAttribute("data-line");
-      if (lineNumber && onLineClick) {
-        onLineClick(parseInt(lineNumber, 10));
-      }
+      if (lineNumber) onLineClick(parseInt(lineNumber, 10));
     }
   };
 
@@ -51,8 +31,7 @@ export default function MarkdownPreview({
       >
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw, rehypeAddLineNumbers]}
-          components={components}
+          rehypePlugins={[rehypeRaw, rehypeAddLineNumbers, rehypeHighlight]}
         >
           {content}
         </ReactMarkdown>

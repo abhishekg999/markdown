@@ -1,4 +1,4 @@
-const CACHE_NAME = "markdown-editor-v1";
+const CACHE_NAME = "markdown-editor-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -24,7 +24,7 @@ self.addEventListener("fetch", (event) => {
         });
         return response;
       });
-    })
+    }),
   );
 });
 
@@ -36,9 +36,9 @@ self.addEventListener("activate", (event) => {
           if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
   self.clients.claim();
 });

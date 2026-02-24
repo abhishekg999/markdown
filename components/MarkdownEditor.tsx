@@ -1,15 +1,14 @@
 "use client";
 
-import type { editor } from "monaco-editor";
+import { markdown } from "@codemirror/lang-markdown";
+import { vscodeDark, vscodeLight } from "@uiw/codemirror-theme-vscode";
+import CodeMirror, {
+  EditorView,
+  type ReactCodeMirrorRef,
+} from "@uiw/react-codemirror";
 import { useTheme } from "next-themes";
-import dynamic from "next/dynamic";
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 import { useEditorSettings } from "./EditorSettings";
-
-const Editor = dynamic(() => import("@monaco-editor/react"), {
-  ssr: false,
-  loading: () => null,
-});
 
 interface MarkdownEditorProps {
   value: string;
@@ -24,46 +23,45 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(
   ({ value, onChange }, ref) => {
     const { theme } = useTheme();
     const { settings } = useEditorSettings();
-    const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+    const cmRef = useRef<ReactCodeMirrorRef>(null);
 
     useImperativeHandle(ref, () => ({
       jumpToLine: (lineNumber: number) => {
-        if (editorRef.current) {
-          editorRef.current.revealLineInCenter(lineNumber);
-          editorRef.current.setPosition({ lineNumber, column: 1 });
-          editorRef.current.focus();
-        }
+        const view = cmRef.current?.view;
+        if (!view) return;
+        const line = view.state.doc.line(lineNumber);
+        view.dispatch({
+          selection: { anchor: line.from },
+          effects: EditorView.scrollIntoView(line.from, { y: "center" }),
+        });
+        view.focus();
       },
     }));
 
-    useEffect(() => {
-      if (editorRef.current) {
-        editorRef.current.updateOptions({
-          wordWrap: settings.wordWrap ? "on" : "off",
-          fontSize: settings.fontSize,
-          lineNumbers: settings.lineNumbers ? "on" : "off",
-        });
-      }
-    }, [settings]);
+    const extensions = useMemo(
+      () =>
+        settings.wordWrap
+          ? [markdown(), EditorView.lineWrapping]
+          : [markdown()],
+      [settings.wordWrap],
+    );
 
     return (
-      <div className="w-1/2 h-full border-r border-neutral-200 dark:border-neutral-700">
-        <Editor
-          height="100%"
-          defaultLanguage="markdown"
+      <div
+        className="w-1/2 h-full border-r border-neutral-200 dark:border-neutral-700 overflow-hidden"
+        style={{ fontSize: settings.fontSize }}
+      >
+        <CodeMirror
+          ref={cmRef}
           value={value}
-          onChange={(value) => onChange(value || "")}
-          theme={theme === "dark" ? "vs-dark" : "light"}
-          loading=""
-          onMount={(editor) => {
-            editorRef.current = editor;
-          }}
-          options={{
-            minimap: { enabled: false },
-            fontSize: settings.fontSize,
-            lineNumbers: settings.lineNumbers ? "on" : "off",
-            scrollBeyondLastLine: false,
-            wordWrap: settings.wordWrap ? "on" : "off",
+          height="100%"
+          style={{ height: "100%" }}
+          theme={theme === "dark" ? vscodeDark : vscodeLight}
+          extensions={extensions}
+          onChange={onChange}
+          basicSetup={{
+            lineNumbers: settings.lineNumbers,
+            foldGutter: false,
           }}
         />
       </div>
