@@ -1,10 +1,29 @@
 "use client";
 
 import { rehypeAddLineNumbers } from "@/lib/rehype-add-line-numbers";
-import ReactMarkdown from "react-markdown";
-import rehypeHighlight from "rehype-highlight";
+import rehypePrettyCode from "rehype-pretty-code";
 import rehypeRaw from "rehype-raw";
+import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
+import { unified } from "unified";
+import { useEffect, useRef, useState } from "react";
+
+const processor = unified()
+  .use(remarkParse)
+  .use(remarkGfm)
+  .use(remarkRehype, { allowDangerousHtml: true })
+  .use(rehypeRaw)
+  .use(rehypeAddLineNumbers)
+  .use(rehypePrettyCode, {
+    theme: {
+      light: "github-light",
+      dark: "github-dark",
+    },
+    keepBackground: false,
+  })
+  .use(rehypeStringify);
 
 interface MarkdownPreviewProps {
   content: string;
@@ -15,6 +34,16 @@ export default function MarkdownPreview({
   content,
   onLineClick,
 }: MarkdownPreviewProps) {
+  const [html, setHtml] = useState("");
+  const versionRef = useRef(0);
+
+  useEffect(() => {
+    const version = ++versionRef.current;
+    processor.process(content).then((result) => {
+      if (version === versionRef.current) setHtml(String(result));
+    });
+  }, [content]);
+
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const element = (e.target as HTMLElement).closest("[data-line]");
     if (element && onLineClick) {
@@ -28,14 +57,8 @@ export default function MarkdownPreview({
       <div
         className="prose prose-neutral dark:prose-invert max-w-none p-8 cursor-pointer"
         onDoubleClick={handleDoubleClick}
-      >
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw, rehypeAddLineNumbers, rehypeHighlight]}
-        >
-          {content}
-        </ReactMarkdown>
-      </div>
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     </div>
   );
 }
