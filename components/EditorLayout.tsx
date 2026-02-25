@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import LoadingState from "./LoadingState";
 import MarkdownEditor, { type MarkdownEditorHandle } from "./MarkdownEditor";
 import MarkdownPreview from "./MarkdownPreview";
 
@@ -65,9 +64,9 @@ export default function EditorLayout() {
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("markdown-content");
-    if (saved) {
-      setMarkdown(saved);
-    }
+    if (saved) setMarkdown(saved);
+    if ("serviceWorker" in navigator)
+      navigator.serviceWorker.register("/sw.js");
   }, []);
 
   useEffect(() => {
@@ -83,7 +82,10 @@ export default function EditorLayout() {
   return (
     <div className="flex-1 flex overflow-hidden">
       {!mounted ? (
-        <LoadingState />
+        <>
+          <div className="w-1/2 bg-neutral-100 dark:bg-neutral-900 animate-pulse" />
+          <div className="w-1/2 bg-neutral-50 dark:bg-neutral-950 animate-pulse" />
+        </>
       ) : (
         <>
           <MarkdownEditor

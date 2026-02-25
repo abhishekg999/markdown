@@ -39,9 +39,12 @@ export default function MarkdownPreview({
 
   useEffect(() => {
     const version = ++versionRef.current;
-    processor.process(content).then((result) => {
-      if (version === versionRef.current) setHtml(String(result));
-    });
+    processor
+      .process(content)
+      .then((result) => {
+        if (version === versionRef.current) setHtml(String(result));
+      })
+      .catch(() => {});
   }, [content]);
 
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
