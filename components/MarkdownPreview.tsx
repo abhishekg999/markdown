@@ -1,11 +1,29 @@
 "use client";
 
 import { rehypeAddLineNumbers } from "@/lib/rehype-add-line-numbers";
-import type { Components } from "react-markdown";
-import ReactMarkdown from "react-markdown";
+import rehypePrettyCode from "rehype-pretty-code";
 import rehypeRaw from "rehype-raw";
+import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
-import CodeBlock from "./CodeBlock";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
+import { unified } from "unified";
+import { useEffect, useRef, useState } from "react";
+
+const processor = unified()
+  .use(remarkParse)
+  .use(remarkGfm)
+  .use(remarkRehype, { allowDangerousHtml: true })
+  .use(rehypeRaw)
+  .use(rehypeAddLineNumbers)
+  .use(rehypePrettyCode, {
+    theme: {
+      light: "github-light",
+      dark: "github-dark",
+    },
+    keepBackground: false,
+  })
+  .use(rehypeStringify);
 
 interface MarkdownPreviewProps {
   content: string;
@@ -16,30 +34,24 @@ export default function MarkdownPreview({
   content,
   onLineClick,
 }: MarkdownPreviewProps) {
-  const components: Components = {
-    code({ className, children, ...props }) {
-      const isInline = !className;
-      const codeContent = String(children).replace(/\n$/, "");
+  const [html, setHtml] = useState("");
+  const versionRef = useRef(0);
 
-      return isInline ? (
-        <code className={className} {...props}>
-          {children}
-        </code>
-      ) : (
-        <CodeBlock className={className}>{codeContent}</CodeBlock>
-      );
-    },
-  };
+  useEffect(() => {
+    const version = ++versionRef.current;
+    processor
+      .process(content)
+      .then((result) => {
+        if (version === versionRef.current) setHtml(String(result));
+      })
+      .catch(() => {});
+  }, [content]);
 
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    const element = target.closest("[data-line]");
-
-    if (element) {
+    const element = (e.target as HTMLElement).closest("[data-line]");
+    if (element && onLineClick) {
       const lineNumber = element.getAttribute("data-line");
-      if (lineNumber && onLineClick) {
-        onLineClick(parseInt(lineNumber, 10));
-      }
+      if (lineNumber) onLineClick(parseInt(lineNumber, 10));
     }
   };
 
@@ -48,15 +60,8 @@ export default function MarkdownPreview({
       <div
         className="prose prose-neutral dark:prose-invert max-w-none p-8 cursor-pointer"
         onDoubleClick={handleDoubleClick}
-      >
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw, rehypeAddLineNumbers]}
-          components={components}
-        >
-          {content}
-        </ReactMarkdown>
-      </div>
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     </div>
   );
 }

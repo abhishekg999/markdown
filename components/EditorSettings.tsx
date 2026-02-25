@@ -44,7 +44,7 @@ export function EditorSettingsProvider({ children }: { children: ReactNode }) {
   }, [settings]);
 
   const updateSettings = (newSettings: Partial<EditorSettings>) => {
-    setSettings({ ...settings, ...newSettings });
+    setSettings((prev) => ({ ...prev, ...newSettings }));
   };
 
   return (

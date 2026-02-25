@@ -40,3 +40,56 @@ body {
   background-color: transparent !important;
   padding: 0 !important;
 }
+
+/* rehype-pretty-code — dual theme (light default, dark via .dark class) */
+code[data-theme*=" "],
+code[data-theme*=" "] span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+.dark code[data-theme*=" "],
+.dark code[data-theme*=" "] span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+
+/* Code block container */
+[data-rehype-pretty-code-figure] {
+  margin: 1.25rem 0;
+  position: relative;
+}
+
+[data-rehype-pretty-code-figure] pre {
+  border-radius: 0.5rem !important;
+  overflow: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background-color: #f6f8fa !important;
+}
+
+.dark [data-rehype-pretty-code-figure] pre {
+  background-color: #0d1117 !important;
+}
+
+[data-rehype-pretty-code-figure] code {
+  display: block;
+  padding: 1rem;
+  font-size: 0.875em;
+  line-height: 1.65;
+}
+
+/* Language badge */
+[data-rehype-pretty-code-figure]::after {
+  content: attr(data-language);
+  position: absolute;
+  top: 0.6rem;
+  right: 0.85rem;
+  font-size: 0.68rem;
+  font-family: ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8b949e;
+  pointer-events: none;
+  z-index: 1;
+}

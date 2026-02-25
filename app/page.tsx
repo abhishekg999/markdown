@@ -1,19 +1,11 @@
-"use client";
-
 import EditorLayout from "@/components/EditorLayout";
 import { EditorSettingsProvider } from "@/components/EditorSettings";
 import Navbar from "@/components/Navbar";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { registerServiceWorker } from "@/lib/register-sw";
-import { useEffect } from "react";
+import { ThemeProvider } from "next-themes";
 
 export default function Home() {
-  useEffect(() => {
-    registerServiceWorker();
-  }, []);
-
   return (
-    <ThemeProvider>
+    <ThemeProvider attribute="class" defaultTheme="light">
       <EditorSettingsProvider>
         <div className="h-screen flex flex-col">
           <Navbar />
